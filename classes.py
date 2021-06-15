@@ -1,6 +1,5 @@
 import asyncio
 import json
-import sys
 from typing import Union, Optional
 
 import discord
@@ -19,10 +18,10 @@ class IRCBot(irc.bot.SingleServerIRCBot):
         self.discord_bot: Optional[commands.Bot] = None
         self.discord_channels = irc.bot.IRCDict()
 
-    def on_nicknameinuse(self, c, e):
+    def on_nicknameinuse(self, c, _):
         c.nick(c.get_nickname() + "_")
 
-    def on_welcome(self, c, e):
+    def on_welcome(self, c, _):
         print(f"IRC {self.connection.get_nickname()} ready")
         # Join general
         c.join("#general")
@@ -32,11 +31,11 @@ class IRCBot(irc.bot.SingleServerIRCBot):
         for channel in channels:
             self.bind_channel(channel, channels[channel])
 
-    def on_privmsg(self, c, e):
+    def on_privmsg(self, _, e):
         self.process_command(e, e.arguments[0])
 
     def process_message(self, channel: Union[discord.GroupChannel, discord.DMChannel, discord.TextChannel],
-            message: discord.Message, content_prefix: str = "", content_suffix: str = ""):
+                        message: discord.Message, content_prefix: str = "", content_suffix: str = ""):
         """Processes a message that came to discord bot"""
         c = self.connection
 
@@ -44,18 +43,16 @@ class IRCBot(irc.bot.SingleServerIRCBot):
         channel_id = channel.id
         irc_channel = self.get_channel_from_discord(channel_id)
         if not irc_channel:
-           return 
+            return
 
         # Send message into the bound IRC channel
         attachments = ' '.join([a.url for a in message.attachments])
-        #print(f"[IRC] <{message.author} ({message.author.id})> \"{message.content}\"")
-        #sys.stdout.flush()
 
         # Clean the content and wrap it correctly for IRC notice compatibility
         content_lines = (content_prefix + str(message.clean_content) + content_suffix).split("\n")
         content_lines_paginated = []
         for line in content_lines:
-            pages = [line[i:i+MAX_NOTICE_LENGTH] for i in range(0, len(line), MAX_NOTICE_LENGTH)]
+            pages = [line[i:i + MAX_NOTICE_LENGTH] for i in range(0, len(line), MAX_NOTICE_LENGTH)]
             if len(pages) > 1:
                 content_lines_paginated = content_lines_paginated + pages
             else:
@@ -72,7 +69,7 @@ class IRCBot(irc.bot.SingleServerIRCBot):
             if attachments:
                 c.notice(irc_channel, f"<{message.author}> {attachments}")
 
-    def on_pubmsg(self, c, e):
+    def on_pubmsg(self, _, e):
         if self.discord_bot is None:
             return
         discord_channel = self.get_discord_channel(self.discord_channels.get(e.target))
@@ -87,7 +84,9 @@ class IRCBot(irc.bot.SingleServerIRCBot):
         """Gets discord channel id from IRC channel name"""
         return self.discord_channels.get(channel_name)
 
-    def get_discord_channel(self, channel_id: int) -> Union[discord.DMChannel, discord.TextChannel, discord.GroupChannel]:
+    def get_discord_channel(self, channel_id: int) -> Union[discord.DMChannel,
+                                                            discord.TextChannel,
+                                                            discord.GroupChannel]:
         """Gets discord channel object from the id"""
         channel = self.discord_bot.get_channel(channel_id)
         if not channel:
@@ -153,7 +152,7 @@ class IRCBot(irc.bot.SingleServerIRCBot):
             irc_channel = args[0]
             discord_channel = args[1]
             try:
-                irc_channel = "#"+irc_channel if not irc_channel.startswith("#") else irc_channel
+                irc_channel = "#" + irc_channel if not irc_channel.startswith("#") else irc_channel
                 if not self.get_discord_channel(int(discord_channel)):
                     return c.notice(nick, "Discord channel not found!")
                 c.join(irc_channel)

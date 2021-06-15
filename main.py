@@ -52,7 +52,6 @@ async def on_ready():
                 user_profile = await discord_bot.fetch_user_profile(int(dc))
             except discord.HTTPException:
                 print(f"User or Channel `{dc}` is inaccessible")
-                sys.stdout.flush()
                 continue
             user = user_profile.user
             await user.create_dm()
@@ -65,18 +64,16 @@ async def on_message(msg: discord.Message):
         user_profile = await discord_bot.fetch_user_profile(msg.author.id)
         msg.author = user_profile.user
         print(f"[DISCORD] <{msg.author} ({msg.author.id})> \"{msg.content}\"")
-        sys.stdout.flush()
         irc_bot.process_message(msg.channel, msg)
 
 
 @discord_bot.listen()
-async def on_message_edit(before: discord.Message, after: discord.Message):
+async def on_message_edit(_, after: discord.Message):
     await discord_bot.wait_until_ready()
     if after.author != discord_bot.user:
         user_profile = await discord_bot.fetch_user_profile(after.author.id)
         after.author = user_profile.user
         print(f"[DISCORD] <{after.author} ({after.author.id})> \"{after.content}\"")
-        sys.stdout.flush()
         irc_bot.process_message(after.channel, after, content_prefix="*")
 
 discord_bot.run(TOKEN)
