@@ -1,16 +1,16 @@
-#IRC-Discord Bridge
+# IRC-Discord Bridge
 
 Connects to a discord user account and an IRC server with credentials and connects text channels.
 
-###Disclaimer
+### Disclaimer
 This project uses Discord self-bots and is against their TOS which means using this is not advised as it will probably lead your account to a permanent ban.
 
 This project was created solely as a proof-of-concept and has no real world use.
 
-##Configuration
+## Configuration
 The bot is configured with JSON files (yeah, bad practice whatever whatever). You need 2 configuration files for operation: `config.json` and `channels.json`
 
-###Examples
+### Examples
 `config.json`
 ```json
 {
